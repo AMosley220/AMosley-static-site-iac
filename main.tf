@@ -19,91 +19,14 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-resource "hcloud_primary_ip" "static_site_ip" {
-  name        = "static-site-primary-ip"
-  location    = "nbg1"
-  type        = "ipv4"
-  auto_delete = true
+module "vps" {
+  source = "./vps"
 }
 
-resource "hcloud_firewall" "static_site_firewall" {
-    name = "static-site-firewall"
-    rule {
-      direction  = "in"
-      protocol   = "tcp"
-      port       = "80"
-      source_ips = [ 
-          "0.0.0.0/0",
-          "::/0"
-      ]
-      description = "TCP In Port 80"
-    }
+module "dns" {
+  source = "./dns"
 
-    rule {
-      direction  = "in"
-      protocol   = "tcp"
-      port       = "443"
-      source_ips = [ 
-          "0.0.0.0/0",
-          "::/0"
-      ]
-      description = "TCP In Port 443"
-    }
-
-    rule {
-      direction   = "out"
-      protocol    = "tcp"
-      port        = "53"
-      destination_ips = [ 
-        "0.0.0.0/0",
-        "::/0" 
-      ]
-      description = "TCP Out Port 53"
-    }
-
-    rule {
-      direction   = "out"
-      protocol    = "udp"
-      port        = "53"
-      destination_ips = [ 
-        "0.0.0.0/0",
-        "::/0" 
-      ]
-      description = "UDP Out Port 53"
-    }
-
-    rule {
-      direction   = "out"
-      protocol    = "tcp"
-      port        = "443"
-      destination_ips = [ 
-        "0.0.0.0/0",
-        "::/0"
-      ]
-      description = "TCP Out Port 443"
-    }
-
-    rule {
-      direction   = "out"
-      protocol    = "tcp"
-      port        = "80"
-      destination_ips = [ 
-        "0.0.0.0/0",
-        "::/0" 
-      ]
-      description = "TCP Out Port 80"
-    }
-}
-
-resource "hcloud_server" "static_site_server" {
-  name        = "static-site-server"
-  image       = "ubuntu-24.04"
-  server_type = "cx23"
-  location    = "nbg1"
-
-  public_net {
-    ipv4 = hcloud_primary_ip.static_site_ip.id
-  }
-
-  firewall_ids = [ hcloud_firewall.static_site_firewall.id ]
+  static_site_ip = module.vps.static_site_server_ip
+  domain_name    = var.domain_name
+  zone_id        = var.zone_id
 }
