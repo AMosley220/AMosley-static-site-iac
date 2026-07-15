@@ -1,4 +1,4 @@
-variable "hcloud_token" {
+variable "do_token" {
   sensitive = true
 }
 
