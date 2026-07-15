@@ -9,7 +9,7 @@ terraform {
 
 resource "digitalocean_ssh_key" "static-site-server-ssh-key" {
   name       = "Static Site Server Key"
-  public_key = file("./static-site-key.pub")
+  public_key = file("${path.module}/static-site-key.pub")
 }
 
 resource "digitalocean_droplet" "static-site-server" {
